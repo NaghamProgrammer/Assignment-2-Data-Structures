@@ -1,0 +1,6 @@
+visit(itch.io)
+visit(steam.com)
+goBack()
+goForward()
+goBack()
+visit(stackOverflow.com)

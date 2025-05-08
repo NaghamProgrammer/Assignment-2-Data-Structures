@@ -1,0 +1,7 @@
+visit(google.com)
+visit(wikipedia.org)
+visit(youtube.com)
+goBack()
+goBack()
+goForward()
+visit(facebook.com)
