@@ -94,7 +94,7 @@ private:
         node->setLeft(y);
 
         updateHeight(node);
-        updateHeight(y);
+        updateHeight(x);
 
         return x;
     }
@@ -128,9 +128,9 @@ public:
         if (parent == nullptr)
             return NewNode;
 
-        if (parent->getKey() < NewNode->getKey())
+        if (NewNode->getKey() < parent->getKey())
             parent->setLeft(insertNode(parent->getLeft(), NewNode));
-        else if (parent->getKey() > NewNode->getKey())
+        else if (NewNode->getKey() > parent->getKey())
             parent->setRight(insertNode(parent->getRight(), NewNode));
         else
             throw runtime_error("Duplicate key");
@@ -170,8 +170,10 @@ public:
                 if (temp == nullptr) {
                     temp = node;
                     node = nullptr;
-                } else
-                    *node = *temp;
+                } else {
+                    delete node;
+                    node = temp;
+                }
 
                 delete temp;
             } else {
@@ -202,7 +204,7 @@ public:
     }
 
     Node* searchNode(const int &id, Node* node){
-        if (root == nullptr)
+        if (node == nullptr)
             throw runtime_error("Empty Tree");
 
         if (node->getKey() > id)
@@ -215,16 +217,24 @@ public:
     }
 
     void ListIDs(Node* node) {
+        if (root == nullptr)
+            throw runtime_error("Address Book is empty");
         if (node == nullptr)
             return;
 
         ListIDs(node->getLeft());
-        cout << "ID: " << node->getKey() << endl;
+        Contact contact = node->getValue();
+
+        cout << "ID:" << node->getKey()
+             << ", Name:" << contact.name
+             << ", Phone:" << contact.phone
+             << ", Email:" << contact.email << endl;
+
         ListIDs(node->getRight());
     }
 
     void displayTree(Node* node, int space = 0, int height = 10) {
-        if (root == nullptr)
+        if (node == nullptr)
             return;
 
         space += height;
@@ -258,8 +268,8 @@ private:
     static int getID(ifstream &in){
         int value;
         try {
-            cout << "Enter ID:";
             in >> value;
+            in.ignore();
             return value;
         }catch (exception& e) {
             cout << "Please Enter a correct number: ";
@@ -278,7 +288,7 @@ private:
     }
 
     static string getPhoneNumber(ifstream &in) {
-        const regex pattern("^01\d-\d{3}-\d{4}$");
+        const regex pattern("^01\\d-\\d{3}-\\d{4}$");
         string number;
         getline(in, number);
         if (regex_match(number, pattern))
@@ -301,9 +311,9 @@ public:
     void addContact(ifstream &input) const {
         Contact contact;
         int id = getID(input);
-        contact.email = getEmail(input);
-        contact.phone = getPhoneNumber(input);
         contact.name = getUserName(input);
+        contact.phone = getPhoneNumber(input);
+        contact.email = getEmail(input);
 
         try {
             Node *newNode = new Node(id, contact);
@@ -312,43 +322,48 @@ public:
             cout << "This Contact is added succefully" << endl;
         }
         catch (exception& e) {
-            cout << "This id is added before\n";
+            cout << "Error: Contact with ID " << id << " already exists.\n";
         }
 
     }
 
     void searchContact(ifstream &input) {
-        cout << "Which ID do you want to search about?";
+        cout << "Which ID do you want to search about?\n";
         int id = getID(input);
 
         try {
             Node *node = tree->searchNode(id, tree->getRoot());
             Contact contact = node->getValue();
 
-            cout << "ID" << node->getKey() << endl;
-            cout << "Name" << contact.name << endl;
-            cout << "Phone" << contact.phone << endl;
-            cout << "Email" << contact.email << endl;
+            cout << "ID: " << node->getKey() << endl;
+            cout << "Name: " << contact.name << endl;
+            cout << "Phone: " << contact.phone << endl;
+            cout << "Email: " << contact.email << endl;
         }
         catch (exception& e) {
-            cout << "This ID is not found in the tree\n";
+            cout << "Contact Not Found\n";
         }
     }
 
     void deleteContact(ifstream &input) {
-        cout << "Which ID do you want to delete about?";
+        cout << "Which ID do you want to delete about?\n";
         int id = getID(input);
         try {
             tree->setRoot(tree->deleteNode(id, tree->getRoot()));
             cout << "This contact is deleted\n";
         }
         catch (exception& e) {
-            cout << "This id is not found in the tree\n";
+            cout << "Contact not Found\n";
         }
     }
 
     void listContact() {
-        tree->ListIDs(tree->getRoot());
+        try {
+            tree->ListIDs(tree->getRoot());
+        }
+        catch (exception& e) {
+            cout << e.what() << endl;
+        }
     }
 
     void DisplayContact() {
@@ -363,25 +378,44 @@ public:
 
 int main() {
     ifstream inputFile;
-    inputFile.open("Problem2 TestCases/input.txt");
-    string input;
+    string input, fileName;
     AddressLibrary addressLibrary;
 
-    while (getline(inputFile, input)) {
-        if (input == "1")
-            addressLibrary.addContact(inputFile);
-        else if (input == "2")
-            addressLibrary.searchContact(inputFile);
-        else if (input == "3")
-            addressLibrary.deleteContact(inputFile);
-        else if (input == "4")
-            addressLibrary.listContact();
-        else if (input == "5")
-            addressLibrary.DisplayContact();
-        else
-            cout << "Please enter a valid input\n";
+    while (true) {
+        cout << "# === Welcome To Our Address Book Tree === #\n";
+        cout << "1. Add New Contact"
+        << "\n2. Search for Contact"
+        << "\n3. Delete Contact"
+        << "\n4. List All Contact"
+        << "\n5. Display Contact tree structure\n";
+        cout << "Enter Your File Path(Enter 0 here to close program): ";
+        getline(cin, fileName);
+
+        if (fileName == "0") {
+            cout << "Thank you for using our address library.\n";
+            return 0;
+        }
+
+        try {
+            inputFile.open(fileName);
+            while (getline(inputFile, input)) {
+                if (input == "1")
+                    addressLibrary.addContact(inputFile);
+                else if (input == "2")
+                    addressLibrary.searchContact(inputFile);
+                else if (input == "3")
+                    addressLibrary.deleteContact(inputFile);
+                else if (input == "4")
+                    addressLibrary.listContact();
+                else if (input == "5")
+                    addressLibrary.DisplayContact();
+            }
+            inputFile.close();
+            cout << "+++++++++++++++++++++++++++++++++++++++++++" << endl;
+        }
+        catch (exception& e) {
+            cout << "Wrong FileName" << endl;
+        }
     }
-    inputFile.close();
-    cout << "Thanks for using My program" << endl;
     return 0;
 }
