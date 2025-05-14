@@ -1,3 +1,7 @@
+#include <cmath>
+#include <iomanip>
+#include <queue>
+#include <string.h>
 #include <utility>
 
 #include "iostream"
@@ -142,6 +146,48 @@ private:
         delete node;
     }
 
+    int getTreeHeight(Node* root) {
+        if (root == nullptr) return 0;
+        return 1 + max(getTreeHeight(root->getLeft()), getTreeHeight(root->getRight()));
+    }
+
+    int getTreeWidth(Node* root) {
+        int h = getTreeHeight(root);
+        return pow(2, h) - 1;
+    }
+    void centerString(char* dest, const string& s, int width) {
+        string result;
+        if (s.length() >= width) {
+            result = s;
+        } else {
+            int left = (width - s.length()) / 2;
+            int right = width - s.length() - left;
+            result = string(left, ' ') + s + string(right, ' ');
+        }
+
+        strcpy(dest, result.c_str());
+    }
+    void fillMatrix(Node* node, char*** matrix, int depth, int left, int right) {
+        if (node == nullptr) return;
+
+        int mid = (left + right) / 2;
+
+        string nodeStr = to_string(node->getKey());
+
+        centerString(matrix[depth * 3][mid], nodeStr, 3);
+
+        // Add the branch characters under the node if it has children
+        if (node->getLeft() != nullptr || node->getRight() != nullptr) {
+            if (node->getLeft() != nullptr)
+                strcpy(matrix[depth * 3 + 1][mid - 1], " / ");
+            if (node->getRight() != nullptr)
+                strcpy(matrix[depth * 3 + 1][mid + 1], " \\ ");
+        }
+
+        fillMatrix(node->getLeft(), matrix, depth + 1, left, mid - 1);
+        fillMatrix(node->getRight(), matrix, depth + 1, mid + 1, right);
+    }
+
 public:
     AVLTree() {
         root = nullptr;
@@ -253,117 +299,40 @@ public:
         ListIDs(node->getRight());
     }
 
-    void displayTree(Node* root) {
+    void visualizeTree() {
         if (root == nullptr) {
-            std::cout << "Tree is empty." << std::endl;
+            cout << "Empty tree" << endl;
             return;
         }
 
-        // Constants for the display
-        const int MAX_HEIGHT = 10;  // Maximum tree height to display
-        const int MAX_NODES = 1023; // 2^MAX_HEIGHT - 1 (max nodes possible)
+        int height = getTreeHeight(root);
+        int width = getTreeWidth(root);
 
-        // Arrays to store tree data
-        Node* nodes[MAX_NODES];
-        int levels[MAX_NODES];
-        bool isRight[MAX_NODES];
 
-        // Initialize arrays
-        for (int i = 0; i < MAX_NODES; i++) {
-            nodes[i] = nullptr;
-            levels[i] = 0;
-            isRight[i] = false;
-        }
-
-        // Root is the first node to process
-        int count = 0;
-        nodes[count] = root;
-        levels[count] = 0;
-        isRight[count] = false;
-        count++;
-
-        // Breadth-first traversal to fill the arrays
-        int index = 0;
-        while (index < count) {
-            Node* current = nodes[index];
-            int level = levels[index];
-
-            // Add left child if it exists
-            if (current->getLeft() != nullptr) {
-                nodes[count] = current->getLeft();
-                levels[count] = level + 1;
-                isRight[count] = false;
-                count++;
-            }
-
-            // Add right child if it exists
-            if (current->getRight() != nullptr) {
-                nodes[count] = current->getRight();
-                levels[count] = level + 1;
-                isRight[count] = true;
-                count++;
-            }
-
-            index++;
-        }
-
-        // Find the maximum level
-        int maxLevel = 0;
-        for (int i = 0; i < count; i++) {
-            if (levels[i] > maxLevel) {
-                maxLevel = levels[i];
+        char*** matrix = new char**[height * 3];
+        for (int i = 0; i < height * 3; i++) {
+            matrix[i] = new char*[width];
+            for (int j = 0; j < width; j++) {
+                matrix[i][j] = new char[4];
+                strcpy(matrix[i][j], "   ");
             }
         }
 
-        // Display the tree level by level
-        std::cout << "Current AVL Tree:" << std::endl;
+        fillMatrix(root, matrix, 0, 0, width - 1);
 
-        // Process each level
-        for (int level = 0; level <= maxLevel; level++) {
-            // For the first level (root), no indentation
-            if (level == 0) {
-                // Find and print the root
-                for (int i = 0; i < count; i++) {
-                    if (levels[i] == 0) {
-                        std::cout << "    " << nodes[i]->getKey() << std::endl;
-                        break;
-                    }
-                }
-            }
-            // For other levels
-            else {
-                // Print connecting lines first
-                std::cout << "    ";
-                bool hasNodeAtThisLevel = false;
-
-                // Check if there are any nodes at this level
-                for (int i = 0; i < count; i++) {
-                    if (levels[i] == level) {
-                        hasNodeAtThisLevel = true;
-                        break;
-                    }
-                }
-
-                if (hasNodeAtThisLevel) {
-                    std::cout << "/ \\" << std::endl;
-                }
-
-                // Print node values
-                std::cout << "   ";
-                bool firstNodePrinted = false;
-
-                for (int i = 0; i < count; i++) {
-                    if (levels[i] == level) {
-                        if (firstNodePrinted) {
-                            std::cout << " ";
-                        }
-                        std::cout << nodes[i]->getKey();
-                        firstNodePrinted = true;
-                    }
-                }
-                std::cout << std::endl;
-            }
+        for (int i = 0; i < height * 3; i++) {
+            for (int j = 0; j < width; j++)
+                cout << matrix[i][j];
+            cout << endl;
         }
+
+        for (int i = 0; i < height * 3; i++) {
+            for (int j = 0; j < width; j++) {
+                delete[] matrix[i][j];
+            }
+            delete[] matrix[i];
+        }
+        delete[] matrix;
     }
 
     Node* getRoot() {
@@ -494,7 +463,7 @@ public:
     /// @brief Displays the full contact list with details.
     void DisplayContact() {
         try {
-            tree->displayTree(tree->getRoot());
+            tree->visualizeTree();
         }
         catch (exception& e) {
             cout << e.what() << endl;
