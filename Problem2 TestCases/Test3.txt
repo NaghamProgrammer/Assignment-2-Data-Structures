@@ -1,0 +1,68 @@
+1
+100
+Kevin Wright
+010-555-1100
+kevin100@example.com
+1
+90
+Laura Scott
+010-555-1090
+laura90@example.com
+1
+80
+Daniel Green
+010-555-1080
+daniel80@example.com
+1
+70
+Jennifer Adams
+010-555-1070
+jennifer70@example.com
+1
+60
+Ryan Mitchell
+010-555-1060
+ryan60@example.com
+1
+50
+Lisa Cooper
+010-555-1050
+lisa50@example.com
+1
+110
+Patricia Nelson
+010-555-1110
+patricia110@example.com
+1
+120
+George Baker
+010-555-1120
+george120@example.com
+1
+130
+Victoria Evans
+010-555-1130
+victoria130@example.com
+1
+75
+Christopher King
+010-555-1075
+chris75@example.com
+3
+70
+3
+100
+3
+120
+1
+95
+Michelle Turner
+010-555-1095
+michelle95@example.com
+1
+105
+Brian Hill
+010-555-1105
+brian105@example.com
+4
+5
